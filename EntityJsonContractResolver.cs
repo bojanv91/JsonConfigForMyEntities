@@ -5,7 +5,7 @@ using Newtonsoft.Json.Serialization;
 namespace JsonConfigForMyEntities
 {
     /// <summary>
-    /// Special contract resolver to create objects bypassing constructor call and being able to deserialize fields to private set properties.
+    /// Special contract resolver for deserializing objects with private set properties.
     /// </summary>
     public class EntityJsonContractResolver : DefaultContractResolver
     {
