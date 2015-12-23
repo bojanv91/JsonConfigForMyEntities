@@ -1,30 +1,53 @@
-﻿using System.Reflection;
+﻿using System.Linq;
+using JsonConfigForMyEntities.Model;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using Shouldly;
+using Xunit;
 
 namespace JsonConfigForMyEntities
 {
-    /// <summary>
-    /// Special contract resolver to create objects bypassing constructor call and being able to deserialize fields to private set properties.
-    /// </summary>
-    public class Tests : DefaultContractResolver
+    public class Tests
     {
-        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+        private readonly JsonSerializerSettings _settings;
+
+        public Tests()
         {
-            var prop = base.CreateProperty(member, memberSerialization);
-
-            // Make property member with private set method writable, so it can be deserialized.
-            if (!prop.Writable)
+            var contractResolver = new EntityJsonContractResolver();
+            _settings = new JsonSerializerSettings
             {
-                var property = member as PropertyInfo;
-                if (property != null)
-                {
-                    bool hasPrivateSetter = property.GetSetMethod(true) != null;
-                    prop.Writable = hasPrivateSetter;
-                }
-            }
+                ContractResolver = contractResolver,
+                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+            };
+        }
 
-            return prop;
+        [Fact]
+        public void deserialize_with_private_set_property()
+        {
+            string json = "{'FullName':'Hulk'}";
+            var entity = JsonConvert.DeserializeObject<Person>(json, _settings);
+            entity.FullName.ShouldBe("Hulk");
+        }
+
+        [Fact]
+        public void deserialize_with_private_readonly_collection_which_is_publicly_exposed_via_property_getter()
+        {
+            string json = @"{""Addresses"":[{""Name"":""Mars""},{""Name"":""Venera""}]}";
+            var entity = JsonConvert.DeserializeObject<Person>(json, _settings);
+            entity.Addresses.Count().ShouldBe(2);
+            entity.Addresses.ElementAt(0).Name.ShouldBe("Mars");
+            entity.Addresses.ElementAt(1).Name.ShouldBe("Venera");
+        }
+
+        [Fact]
+        public void should_serialize()
+        {
+            var entity = new Person("Hulk");
+            entity.AddAddress("Mars");
+            entity.AddAddress("Venera");
+
+            string json = JsonConvert.SerializeObject(entity, _settings);
+
+            json.ShouldBe(@"{""FullName"":""Hulk"",""Addresses"":[{""Name"":""Mars""},{""Name"":""Venera""}]}");
         }
     }
 }

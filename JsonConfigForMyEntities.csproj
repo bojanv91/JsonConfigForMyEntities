@@ -64,10 +64,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Tests.cs" />
+    <Compile Include="EntityJsonContractResolver.cs" />
     <Compile Include="Model\Address.cs" />
     <Compile Include="Model\Person.cs" />
-    <Compile Include="EntityDeserializationTests.cs" />
+    <Compile Include="Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
